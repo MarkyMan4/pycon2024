@@ -1,5 +1,6 @@
 import polars as pl
-from great_tables import GT
+import polars.selectors as cs
+from great_tables import GT, loc, style
 
 
 def load_data() -> pl.DataFrame:
@@ -21,7 +22,24 @@ def load_data() -> pl.DataFrame:
     return df
 
 def create_table(df: pl.DataFrame):
+    sel_profit = cs.starts_with("profit")
+
     gt_tbl = GT(df)
+    gt_tbl = (
+        # structure
+        gt_tbl
+        .tab_header("Sales and profit by product")
+        .tab_spanner(label="metric", columns=["sales", "profit"])
+
+        # formatting
+        .fmt_currency(columns=["sales", "profit"])
+
+        # style
+        .tab_style(
+            style=style.fill(color="papayawhip"),
+            locations=loc.body(columns=sel_profit)
+        )
+    )
 
     with open("table.html", "w") as f:
         f.write(gt_tbl.as_raw_html())
